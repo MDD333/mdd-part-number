@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MDD 料號管理系統 V3</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Noto Sans TC",sans-serif;background:#f4f7fb;color:#172033}
+header{background:#14213d;color:white;padding:22px 18px}
+header h1{margin:0;font-size:24px}
+header p{margin:7px 0 0;opacity:.8}
+main{max-width:1100px;margin:auto;padding:18px}
+.card{background:white;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 4px 18px #0000000d}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+input,button{font:inherit;border-radius:10px;padding:11px;border:1px solid #ccd4df}
+button{cursor:pointer;background:#14213d;color:white;border:0}
+button.secondary{background:#e9eef5;color:#172033}
+button.danger{background:#c62828}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.stats{display:flex;gap:12px;flex-wrap:wrap}
+.stat{background:#eef3f9;border-radius:12px;padding:12px 18px}
+table{width:100%;border-collapse:collapse;margin-top:14px}
+th,td{padding:11px 8px;border-bottom:1px solid #e8edf3;text-align:left}
+th{background:#f7f9fc}
+.badge{display:inline-block;padding:4px 8px;border-radius:8px;background:#edf3ff}
+@media(max-width:700px){
+ .grid{grid-template-columns:1fr 1fr}
+ table{font-size:13px}
+ th:nth-child(5),td:nth-child(5){display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>📦 MDD 料號管理系統 V3</h1>
+  <p>管理後台・手機查詢・LINE Bot</p>
+</header>
+
+<main>
+<section class="card">
+  <h2>新增料號</h2>
+  <div class="grid">
+    <input id="model" placeholder="機型，例如 A01">
+    <input id="item" placeholder="項目，例如 主板">
+    <input id="part" placeholder="料號，例如 PN-001234">
+    <input id="note" placeholder="備註">
+  </div>
+  <div class="actions" style="margin-top:10px">
+    <button onclick="addPart()">＋ 新增</button>
+  </div>
+</section>
+
+<section class="card">
+  <h2>🔎 查詢</h2>
+  <div class="grid">
+    <input id="q" placeholder="搜尋機型／項目／料號／備註" oninput="loadParts()">
+    <input id="filterModel" placeholder="機型篩選" oninput="loadParts()">
+    <input id="filterItem" placeholder="項目篩選" oninput="loadParts()">
+  </div>
+  <div class="stats" style="margin-top:12px">
+    <div class="stat">資料筆數：<b id="count">0</b></div>
+    <div class="stat">LINE：<span class="badge">/webhook</span></div>
+  </div>
+</section>
+
+<section class="card">
+  <h2>料號清單</h2>
+  <div style="overflow:auto">
+    <table>
+      <thead>
+        <tr>
+          <th>機型</th><th>項目</th><th>料號</th><th>備註</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</section>
+</main>
+
+<script>
+async function loadParts(){
+  const params=new URLSearchParams({
+    q:document.querySelector("#q").value,
+    model:document.querySelector("#filterModel").value,
+    item:document.querySelector("#filterItem").value
+  });
+  const r=await fetch("/api/parts?"+params);
+  const j=await r.json();
+  document.querySelector("#count").textContent=j.data.length;
+  const tbody=document.querySelector("#tbody");
+  tbody.innerHTML="";
+  j.data.forEach(x=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
+      <td>${esc(x.model)}</td>
+      <td>${esc(x.item)}</td>
+      <td><b>${esc(x.part_number)}</b></td>
+      <td>${esc(x.note||"")}</td>
+      <td>
+        <div class="actions">
+          <button class="secondary" onclick='editPart(${JSON.stringify(x)})'>編輯</button>
+          <button class="danger" onclick="deletePart(${x.id})">刪除</button>
+        </div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+async function addPart(){
+  const body={
+    model:document.querySelector("#model").value.trim(),
+    item:document.querySelector("#item").value.trim(),
+    part_number:document.querySelector("#part").value.trim(),
+    note:document.querySelector("#note").value.trim()
+  };
+  if(!body.model||!body.item||!body.part_number){
+    alert("請填寫機型、項目、料號");
+    return;
+  }
+  const r=await fetch("/api/parts",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(body)
+  });
+  const j=await r.json();
+  if(!j.ok){alert(j.error);return;}
+  ["model","item","part","note"].forEach(id=>document.querySelector("#"+id).value="");
+  loadParts();
+}
+
+async function editPart(x){
+  const model=prompt("機型",x.model); if(model===null)return;
+  const item=prompt("項目",x.item); if(item===null)return;
+  const part_number=prompt("料號",x.part_number); if(part_number===null)return;
+  const note=prompt("備註",x.note||""); if(note===null)return;
+
+  const r=await fetch("/api/parts/"+x.id,{
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({model,item,part_number,note})
+  });
+  const j=await r.json();
+  if(!j.ok)alert(j.error);
+  loadParts();
+}
+
+async function deletePart(id){
+  if(!confirm("確定要刪除這筆料號嗎？"))return;
+  const r=await fetch("/api/parts/"+id,{method:"DELETE"});
+  const j=await r.json();
+  if(!j.ok)alert(j.error);
+  loadParts();
+}
+
+function esc(v){
+  return String(v).replace(/[&<>"']/g,m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",
+    '"':"&quot;","'":"&#039;"
+  }[m]));
+}
+loadParts();
+</script>
+</body>
+</html>
