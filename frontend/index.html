@@ -1,166 +1,39 @@
 <!doctype html>
-<html lang="zh-Hant">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MDD 料號管理系統 V3</title>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MDD 料號管理系統 V3.1</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,"Noto Sans TC",sans-serif;background:#f4f7fb;color:#172033}
-header{background:#14213d;color:white;padding:22px 18px}
-header h1{margin:0;font-size:24px}
-header p{margin:7px 0 0;opacity:.8}
-main{max-width:1100px;margin:auto;padding:18px}
-.card{background:white;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 4px 18px #0000000d}
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-input,button{font:inherit;border-radius:10px;padding:11px;border:1px solid #ccd4df}
-button{cursor:pointer;background:#14213d;color:white;border:0}
-button.secondary{background:#e9eef5;color:#172033}
-button.danger{background:#c62828}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.stats{display:flex;gap:12px;flex-wrap:wrap}
-.stat{background:#eef3f9;border-radius:12px;padding:12px 18px}
-table{width:100%;border-collapse:collapse;margin-top:14px}
-th,td{padding:11px 8px;border-bottom:1px solid #e8edf3;text-align:left}
-th{background:#f7f9fc}
-.badge{display:inline-block;padding:4px 8px;border-radius:8px;background:#edf3ff}
-@media(max-width:700px){
- .grid{grid-template-columns:1fr 1fr}
- table{font-size:13px}
- th:nth-child(5),td:nth-child(5){display:none}
-}
-</style>
-</head>
-<body>
-<header>
-  <h1>📦 MDD 料號管理系統 V3</h1>
-  <p>管理後台・手機查詢・LINE Bot</p>
-</header>
-
-<main>
-<section class="card">
-  <h2>新增料號</h2>
-  <div class="grid">
-    <input id="model" placeholder="機型，例如 A01">
-    <input id="item" placeholder="項目，例如 主板">
-    <input id="part" placeholder="料號，例如 PN-001234">
-    <input id="note" placeholder="備註">
-  </div>
-  <div class="actions" style="margin-top:10px">
-    <button onclick="addPart()">＋ 新增</button>
-  </div>
-</section>
-
-<section class="card">
-  <h2>🔎 查詢</h2>
-  <div class="grid">
-    <input id="q" placeholder="搜尋機型／項目／料號／備註" oninput="loadParts()">
-    <input id="filterModel" placeholder="機型篩選" oninput="loadParts()">
-    <input id="filterItem" placeholder="項目篩選" oninput="loadParts()">
-  </div>
-  <div class="stats" style="margin-top:12px">
-    <div class="stat">資料筆數：<b id="count">0</b></div>
-    <div class="stat">LINE：<span class="badge">/webhook</span></div>
-  </div>
-</section>
-
-<section class="card">
-  <h2>料號清單</h2>
-  <div style="overflow:auto">
-    <table>
-      <thead>
-        <tr>
-          <th>機型</th><th>項目</th><th>料號</th><th>備註</th><th>操作</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-</section>
-</main>
-
+*{box-sizing:border-box}body{margin:0;background:#f4f6f8;color:#17202a;font-family:Arial,"Noto Sans TC",sans-serif}.app{display:flex;min-height:100vh}
+.side{width:235px;background:#17212b;color:#fff;padding:22px 15px;position:sticky;top:0;height:100vh}.logo{font-size:20px;font-weight:800;padding:4px 9px 24px}.logo small{display:block;font-size:11px;opacity:.6;margin-top:5px}
+.nav button{width:100%;border:0;border-radius:10px;background:transparent;color:#dce6ee;text-align:left;padding:13px 12px;margin:4px 0;font-size:15px;cursor:pointer}.nav button:hover,.nav button.active{background:#2c3b49;color:#fff}
+.main{flex:1;padding:24px;max-width:1450px;width:100%;margin:auto}.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.topbar h1{margin:0;font-size:25px}.badge{font-size:12px;background:#e7f1ff;color:#1769aa;padding:7px 10px;border-radius:99px}
+.card{background:#fff;border-radius:15px;padding:20px;margin-bottom:18px;box-shadow:0 3px 14px #0000000d}h2{font-size:18px;margin:0 0 15px}.filters{display:grid;grid-template-columns:1fr 1fr 1.5fr auto;gap:10px}
+input,select{width:100%;padding:11px 12px;border:1px solid #d4dbe2;border-radius:9px;font-size:14px;background:#fff}button.primary,button.secondary,button.danger{border:0;border-radius:9px;padding:11px 15px;cursor:pointer;font-weight:700}.primary{background:#1769aa;color:#fff}.secondary{background:#edf2f6;color:#26323d}.danger{background:#ffe8e8;color:#c62828}
+table{width:100%;border-collapse:collapse}th,td{padding:12px 10px;border-bottom:1px solid #edf0f2;text-align:left;font-size:14px}th{background:#f8fafb;color:#566}.empty{text-align:center;color:#888;padding:30px}.count{margin-left:auto;color:#68727c;font-size:13px}.result-head{display:flex;align-items:center;margin-bottom:10px}.modal{display:none;position:fixed;inset:0;background:#0008;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.show{display:flex}.modalbox{background:#fff;border-radius:15px;padding:22px;width:min(520px,100%)}.formgrid{display:grid;gap:11px}.actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.tablewrap{overflow:auto}
+@media(max-width:800px){.side{width:72px;padding:14px 7px}.logo{font-size:0;text-align:center}.logo:before{content:"📦";font-size:25px}.logo small{display:none}.nav button{font-size:0;text-align:center;padding:14px 3px}.nav button:nth-child(1):before{content:"🔎";font-size:20px}.nav button:nth-child(2):before{content:"➕";font-size:20px}.nav button:nth-child(3):before{content:"📥";font-size:20px}.nav button:nth-child(4):before{content:"📤";font-size:20px}.nav button:nth-child(5):before{content:"📄";font-size:20px}.main{padding:14px}.topbar h1{font-size:20px}.filters{grid-template-columns:1fr}.count{margin-left:0}table{min-width:650px}}
+</style></head><body>
+<div class="app"><aside class="side"><div class="logo">📦 MDD料號<small>Part Number System V3.1</small></div><div class="nav">
+<button class="active" onclick="focusQuery()">🔎 料號查詢</button><button onclick="openModal()">➕ 新增料號</button><button onclick="document.getElementById('file').click()">📥 Excel匯入</button><button onclick="exportExcel()">📤 Excel匯出</button><button onclick="template()">📄 匯入範本</button></div>
+<input id="file" type="file" accept=".xlsx,.xls" hidden onchange="importExcel(this.files[0])"></aside>
+<main class="main"><div class="topbar"><h1>料號管理系統</h1><span class="badge">V3.1 Excel／LINE版</span></div>
+<section class="card" id="queryCard"><h2>🔎 料號查詢</h2><div class="filters">
+<select id="model" onchange="loadItems()"><option value="">全部機型</option></select>
+<select id="item" onchange="search()"><option value="">全部項目</option></select>
+<input id="q" placeholder="輸入機型、項目、料號或備註關鍵字" onkeydown="if(event.key==='Enter')search()"><button class="primary" onclick="search()">查詢</button>
+</div></section>
+<section class="card"><div class="result-head"><h2 style="margin:0">📋 查詢結果</h2><span id="count" class="count">0 筆</span></div><div class="tablewrap"><table><thead><tr><th>機型</th><th>項目</th><th>料號</th><th>備註</th><th>操作</th></tr></thead><tbody id="tbody"></tbody></table></div></section>
+</main></div>
+<div id="modal" class="modal"><div class="modalbox"><h2>➕ 新增料號</h2><div class="formgrid"><input id="fm" placeholder="機型 *"><input id="fi" placeholder="項目 *"><input id="fp" placeholder="料號 *"><input id="fn" placeholder="備註"></div><div class="actions"><button class="secondary" onclick="closeModal()">取消</button><button class="primary" onclick="addPart()">儲存</button></div></div></div>
 <script>
-async function loadParts(){
-  const params=new URLSearchParams({
-    q:document.querySelector("#q").value,
-    model:document.querySelector("#filterModel").value,
-    item:document.querySelector("#filterItem").value
-  });
-  const r=await fetch("/api/parts?"+params);
-  const j=await r.json();
-  document.querySelector("#count").textContent=j.data.length;
-  const tbody=document.querySelector("#tbody");
-  tbody.innerHTML="";
-  j.data.forEach(x=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
-      <td>${esc(x.model)}</td>
-      <td>${esc(x.item)}</td>
-      <td><b>${esc(x.part_number)}</b></td>
-      <td>${esc(x.note||"")}</td>
-      <td>
-        <div class="actions">
-          <button class="secondary" onclick='editPart(${JSON.stringify(x)})'>編輯</button>
-          <button class="danger" onclick="deletePart(${x.id})">刪除</button>
-        </div>
-      </td>`;
-    tbody.appendChild(tr);
-  });
-}
-
-async function addPart(){
-  const body={
-    model:document.querySelector("#model").value.trim(),
-    item:document.querySelector("#item").value.trim(),
-    part_number:document.querySelector("#part").value.trim(),
-    note:document.querySelector("#note").value.trim()
-  };
-  if(!body.model||!body.item||!body.part_number){
-    alert("請填寫機型、項目、料號");
-    return;
-  }
-  const r=await fetch("/api/parts",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify(body)
-  });
-  const j=await r.json();
-  if(!j.ok){alert(j.error);return;}
-  ["model","item","part","note"].forEach(id=>document.querySelector("#"+id).value="");
-  loadParts();
-}
-
-async function editPart(x){
-  const model=prompt("機型",x.model); if(model===null)return;
-  const item=prompt("項目",x.item); if(item===null)return;
-  const part_number=prompt("料號",x.part_number); if(part_number===null)return;
-  const note=prompt("備註",x.note||""); if(note===null)return;
-
-  const r=await fetch("/api/parts/"+x.id,{
-    method:"PUT",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({model,item,part_number,note})
-  });
-  const j=await r.json();
-  if(!j.ok)alert(j.error);
-  loadParts();
-}
-
-async function deletePart(id){
-  if(!confirm("確定要刪除這筆料號嗎？"))return;
-  const r=await fetch("/api/parts/"+id,{method:"DELETE"});
-  const j=await r.json();
-  if(!j.ok)alert(j.error);
-  loadParts();
-}
-
-function esc(v){
-  return String(v).replace(/[&<>"']/g,m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",
-    '"':"&quot;","'":"&#039;"
-  }[m]));
-}
-loadParts();
-</script>
-</body>
-</html>
+const $=id=>document.getElementById(id);async function api(u,o){const r=await fetch(u,o);if(!r.ok)throw new Error(await r.text());return r.json()}
+const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+async function init(){await refreshOptions();await search()}
+async function refreshOptions(){const d=await api("/api/options");$("model").innerHTML='<option value="">全部機型</option>'+d.models.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");await loadItems(false)}
+async function loadItems(doSearch=true){const m=$("model").value;const d=await api("/api/options"+(m?"?model="+encodeURIComponent(m):""));const a=m?d.itemsByModel:d.items;$("item").innerHTML='<option value="">全部項目</option>'+a.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");if(doSearch)search()}
+async function search(){const p=new URLSearchParams();if($("model").value)p.set("model",$("model").value);if($("item").value)p.set("item",$("item").value);if($("q").value.trim())p.set("q",$("q").value.trim());const rows=await api("/api/parts?"+p);$("count").textContent=rows.length+" 筆";$("tbody").innerHTML=rows.length?rows.map(x=>`<tr><td>${esc(x.model)}</td><td>${esc(x.item)}</td><td><b>${esc(x.part_no)}</b></td><td>${esc(x.note||"")}</td><td><button class="danger" onclick="del(${x.id})">刪除</button></td></tr>`).join(""):'<tr><td colspan="5" class="empty">查無資料</td></tr>'}
+function openModal(){$("modal").classList.add("show");$("fm").focus()}function closeModal(){$("modal").classList.remove("show")}function focusQuery(){$("queryCard").scrollIntoView({behavior:"smooth"});$("q").focus()}
+async function addPart(){const b={model:$("fm").value.trim(),item:$("fi").value.trim(),part_no:$("fp").value.trim(),note:$("fn").value.trim()};if(!b.model||!b.item||!b.part_no){alert("請填寫機型、項目、料號");return}await api("/api/parts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(b)});["fm","fi","fp","fn"].forEach(x=>$(x).value="");closeModal();await refreshOptions();await search()}
+async function del(id){if(confirm("確定要刪除這筆料號嗎？")){await api("/api/parts/"+id,{method:"DELETE"});await refreshOptions();await search()}}
+function exportExcel(){location.href="/api/export.xlsx"}function template(){location.href="/api/template.xlsx"}
+async function importExcel(file){if(!file)return;const fd=new FormData();fd.append("file",file);try{const d=await api("/api/import.xlsx",{method:"POST",body:fd});alert("Excel 匯入完成，共新增 "+d.count+" 筆資料");await refreshOptions();await search()}catch(e){alert("匯入失敗："+e.message)}$("file").value=""}
+init().catch(e=>alert("系統連線失敗："+e.message));
+</script></body></html>
