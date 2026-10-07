@@ -1,16 +1,13 @@
 {
-  "name": "mdd-part-number-v3",
-  "version": "3.0.0",
-  "private": true,
-  "description": "MDD 料號管理系統 V3 - LINE Bot + 管理後台",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
-  },
-  "dependencies": {
-    "better-sqlite3": "^11.7.0",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+  "name":"mdd-part-number-v3-1",
+  "version":"3.1.0",
+  "scripts":{"start":"node server.js"},
+  "dependencies":{
+    "better-sqlite3":"^11.7.0",
+    "cors":"^2.8.5",
+    "dotenv":"^16.4.7",
+    "express":"^4.21.2",
+    "multer":"^1.4.5-lts.1",
+    "xlsx":"^0.18.5"
   }
 }
