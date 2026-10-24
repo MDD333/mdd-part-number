@@ -63,6 +63,13 @@ app.post("/api/parts",needAdmin,(req,res)=>{
  const r=db.prepare("INSERT INTO parts(model,item,part_no,note) VALUES(?,?,?,?)").run(model.trim(),item.trim(),part_no.trim(),note||"");
  res.json(db.prepare("SELECT * FROM parts WHERE id=?").get(r.lastInsertRowid));
 });
+app.put("/api/parts/:id",needAdmin,(req,res)=>{
+ const {model,item,part_no,note=""}=req.body||{};
+ if(!model||!item||!part_no)return res.status(400).json({error:"機型、項目、料號為必填"});
+ const r=db.prepare("UPDATE parts SET model=?,item=?,part_no=?,note=? WHERE id=?").run(String(model).trim(),String(item).trim(),String(part_no).trim(),String(note||""),req.params.id);
+ if(!r.changes)return res.status(404).json({error:"找不到這筆料號"});
+ res.json(db.prepare("SELECT * FROM parts WHERE id=?").get(req.params.id));
+});
 app.delete("/api/parts/:id",needAdmin,(req,res)=>{
  db.prepare("DELETE FROM parts WHERE id=?").run(req.params.id);
  res.json({ok:true});
